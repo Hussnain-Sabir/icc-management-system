@@ -1,0 +1,456 @@
+#ifndef PHASE1_H
+#define PHASE1_H
+
+#include "Phase2.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Person
+{
+protected:
+    string name;
+    int age;
+    string nationality;
+
+public:
+    Person()
+    {
+        name = "Unknown";
+        age = 0;
+        nationality = "Unknown";
+    }
+
+    Person(string name, int age, string nationality)
+    {
+        this->name = name;
+        this->age = age;
+        this->nationality = nationality;
+    }
+
+    virtual void displayInfo() const = 0;
+    virtual ~Person() {}
+};
+
+class Player : public Person
+{
+private:
+    int playerID;
+    string role;
+    int matchesPlayed;
+    int runs;
+    int wickets;
+
+public:
+    Player() : Person()
+    {
+        playerID = 0;
+        role = "Unknown";
+        matchesPlayed = 0;
+        runs = 0;
+        wickets = 0;
+    }
+
+    Player(string name, int age, string nationality, int playerID,
+           string role, int matchesPlayed, int runs, int wickets)
+
+        : Person(name, age, nationality)
+    {
+
+        this->playerID = playerID;
+        this->role = role;
+        this->matchesPlayed = matchesPlayed;
+        this->runs = runs;
+        this->wickets = wickets;
+    }
+
+    void displayInfo() const override
+    {
+        cout << "Player ID: " << playerID << endl;
+        cout << "Name: " << name << endl;
+        cout << "Age: " << age << endl;
+        cout << "Nationality: " << nationality << endl;
+        cout << "Role: " << role << endl;
+        cout << "Matches Played: " << matchesPlayed << endl;
+        cout << "Runs: " << runs << endl;
+        cout << "Wickets: " << wickets << endl;
+    }
+
+    // Inside Player class
+    int getRuns() const { return runs; }
+    int getWickets() const { return wickets; }
+    int getMatchesPlayed() const { return matchesPlayed; }
+    string getName() const { return name; }
+
+    string toCSV() const
+    {
+        return to_string(playerID) + "," +
+               name + "," +
+               to_string(age) + "," +
+               nationality + "," +
+               role + "," +
+               to_string(matchesPlayed) + "," +
+               to_string(runs) + "," +
+               to_string(wickets);
+    }
+};
+
+class Team
+{
+private:
+    string teamName;
+    int matchesPlayed=0;
+    int matchesWon=0;
+    vector<Player> players;
+
+public:
+    Team() : teamName("Unamed Team") {};
+
+    Team(string teamName)
+    {
+        this->teamName = teamName;
+    }
+
+    string getTeamName() const { return teamName; }
+
+    void addPlayer(Player p)
+    {
+        players.push_back(p);
+    }
+
+    void displayTeam() const
+    {
+        cout << "Team Name: " << teamName << endl
+             << "---------------------------" << endl;
+
+        if (players.empty())
+        {
+            cout << "No players in this team!" << endl;
+            return;
+        }
+
+        for (const Player &p : players)
+        {
+            p.displayInfo();
+            cout << "------------------------" << endl;
+        }
+    }
+
+    void savePlayersToFile() const
+    {
+        ofstream player_file(teamName + ".csv");
+        if (!player_file.is_open())
+        {
+            cout << "Error: File not Opening!" << endl;
+            return;
+        }
+
+        for (const Player &p : players)
+        {
+            player_file << p.toCSV() << "\n";
+        }
+        player_file.close();
+        cout << "All players saved successfully to Players_Info.csv" << endl;
+    }
+
+    int getMatchesPlayed() const { return 0; } // replace with actual data if tracked
+    int getMatchesWon() const { return 0; }    // replace with actual data if tracked
+
+    const vector<Player> &getPlayers() const { return players; }
+
+    void loadPlayersFromFile();
+};
+
+void Team::loadPlayersFromFile()
+{
+    ifstream player_file(teamName + ".csv");
+    if (!player_file.is_open())
+    {
+        cout << "Error: Players_Info.csv not Found!" << endl;
+        return;
+    }
+
+    players.clear();
+    string line;
+
+    while (getline(player_file, line))
+    {
+        if (line.empty())
+            continue;
+
+        stringstream ss(line);
+        string data[8];
+        string temp;
+        int i = 0;
+
+        while (getline(ss, temp, ',') && i < 8)
+        {
+            data[i++] = temp;
+        }
+
+        Player p(
+            data[1],       // Name
+            stoi(data[2]), // Age
+            data[3],       // Nationality
+            stoi(data[0]), // ID
+            data[4],       // Role
+            stoi(data[5]), // Matches
+            stoi(data[6]), // Runs
+            stoi(data[7])  // Wickets
+        );
+
+        players.push_back(p);
+    }
+
+    player_file.close();
+    cout << "Success: All players loaded into the system." << endl;
+}
+
+class CricketBoard
+{
+private:
+    string boardName;
+    vector<Team> teams;
+
+public:
+    CricketBoard()
+    {
+        boardName = "Unnamed Cricket Board!";
+    }
+
+    CricketBoard(string boardName)
+    {
+        this->boardName = boardName;
+    }
+
+    void addTeam(Team t)
+    {
+        teams.push_back(t);
+        cout << "Team added successfully to " << boardName << "!" << endl;
+    }
+
+    void displayAllTeams() const
+    {
+        cout << "Cricket Board: " << boardName << endl;
+        cout << "-------------------------------" << endl;
+
+        if (teams.empty())
+        {
+            cout << "No teams in this board!" << endl;
+            return;
+        }
+        for (const Team &t : teams)
+        {
+            t.displayTeam();
+            cout << "----------------------------" << endl;
+        }
+    }
+
+    vector<Team> &getTeams()
+    {
+        return teams;
+    }
+
+    string getBoardName() const
+    {
+        return boardName;
+    }
+
+    Team *getTeamByName(const string &name)
+    {
+        for (Team &t : teams)
+        {
+            if (t.getTeamName() == name)
+            {
+                return &t;
+            }
+        }
+        return nullptr;
+    }
+};
+
+class Menu
+{
+public:
+    CricketBoard board;
+    Tournament tournament;
+    RankingSystem ranking;
+
+    Menu() : board("ICC Cricket Board") {};
+
+    void addteam()
+    {
+        string teamName;
+        cout << "Enter Team Name: ";
+        getline(cin, teamName);
+
+        Team newTeam(teamName);
+        board.addTeam(newTeam);
+
+        cout << "Team added successfully!" << endl;
+    }
+
+    void addPlayerToTeam()
+    {
+        string teamName;
+        cout << "Enter the team name to add player: ";
+        getline(cin, teamName);
+        Team *team = board.getTeamByName(teamName);
+        if (team == nullptr)
+        {
+            cout << "Team not found!" << endl;
+            return;
+        }
+
+        int playerID, age, matches, runs, wickets;
+        string name, nationality, role;
+
+        cout << "Enter player ID: ";
+        cin >> playerID;
+        cin.ignore();
+
+        cout << "Enter player name: ";
+        getline(cin, name);
+
+        cout << "Enter age: ";
+        cin >> age;
+        cin.ignore();
+
+        cout << "Enter nationality: ";
+        getline(cin, nationality);
+
+        cout << "Enter role: ";
+        getline(cin, role);
+
+        cout << "Enter matches played: ";
+        cin >> matches;
+        cout << "Enter runs: ";
+        cin >> runs;
+        cout << "Enter wickets: ";
+        cin >> wickets;
+        cin.ignore();
+
+        Player newPlayer(name, age, nationality, playerID, role, matches, runs, wickets);
+        team->addPlayer(newPlayer);
+        cout << "Player added successfully!" << endl;
+    }
+
+    void Display_Players_orTeams()
+    {
+        {
+            string teamName;
+            cout << "Enter team name to display: ";
+            getline(cin, teamName);
+            Team *team = board.getTeamByName(teamName);
+            if (team == nullptr)
+            {
+                cout << "Team not found!" << endl;
+                return;
+            }
+            team->displayTeam();
+        }
+    }
+
+    void Display_allTeams()
+    {
+        board.displayAllTeams();
+    }
+
+    void savePlayers_to_team()
+    {
+        for (Team &t : board.getTeams())
+        {
+            t.savePlayersToFile();
+        }
+    }
+
+    void LoadPlayers_to_team()
+    {
+        for (Team &t : board.getTeams())
+        {
+            t.loadPlayersFromFile();
+        }
+    }
+
+    void createTournament()
+    {
+        string tName;
+        cout << "Enter Tournament Name: ";
+        getline(cin, tName);
+        tournament = Tournament(tName);
+        cout << "Tournament '" << tName << "' created successfully!" << endl;
+    }
+
+    void Add_match_toTournament()
+    {
+        if (board.getTeams().empty())
+        {
+            cout << "No teams available. Add teams first!" << endl;
+            return;
+        }
+
+        int matchID, type;
+        string team1, team2, venue, date;
+
+        cout << "Enter Match ID: ";
+        cin >> matchID;
+        cin.ignore();
+
+        cout << "Select Team 1: ";
+        getline(cin, team1);
+
+        cout << "Select Team 2: ";
+        getline(cin, team2);
+
+        cout << "Enter Venue: ";
+        getline(cin, venue);
+
+        cout << "Enter Date: ";
+        getline(cin, date);
+
+        cout << "Select Match Type (1 = T20, 2 = ODI): ";
+        cin >> type;
+        cin.ignore();
+
+        Match *match = nullptr;
+        if (type == 1)
+            match = new T20Match(matchID, team1, team2, venue, date);
+        else if (type == 2)
+            match = new ODIMatch(matchID, team1, team2, venue, date);
+        else
+        {
+            cout << "Invalid type!" << endl;
+            return;
+        }
+
+        tournament.addMatch(match);
+
+        // Add teams to ranking if not already present
+        ranking.addTeam(team1);
+        ranking.addTeam(team2);
+
+        cout << "Match added successfully!" << endl;
+    }
+
+    void Play_Tournament()
+    {
+        tournament.playTournament();
+
+        // Update rankings
+        for (Match *mptr : tournament.getMatches())
+        {
+            ranking.updateFromMatch(mptr);
+        }
+
+        cout << "Tournament played and rankings updated!" << endl;
+    }
+
+    void Display_Tournament() { tournament.displayTournament(); }
+    void Display_Ranking() { ranking.displayRankings(); }
+};
+
+#endif

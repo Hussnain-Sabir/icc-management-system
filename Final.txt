@@ -1,0 +1,78 @@
+#include "Phase1.h"
+#include "Phase2.h"
+#include "Phase3.h"
+
+int main()
+{
+
+    bool running = true;
+    int choice;
+    Menu m;
+   
+
+    while (running)
+    {
+        cout << "------ ICC Management System Menu ------" << endl;
+        cout << "1. Add Team" << endl;
+        cout << "2. Add Player to Team" << endl;
+        cout << "3. Display Team / Players" << endl;
+        cout << "4. Display All Teams" << endl;
+        cout << "5. Save Players of a Team" << endl;
+        cout << "6. Load Players of a Team" << endl;
+        cout << "7. Create Tournament" << endl;
+        cout << "8. Add Match to Tournament" << endl;
+        cout << "9. Play Tournament" << endl;
+        cout << "10. Display Tournament Results" << endl;
+        cout << "11. Display Rankings" << endl;
+        cout << "12. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice)
+        {
+        case 1:
+            m.addteam();
+            break;
+        case 2:
+            m.addPlayerToTeam();
+            break;
+        case 3:
+            m.Display_Players_orTeams();
+            break;
+        case 4:
+            m.Display_allTeams();
+            break;
+        case 5:
+            m.savePlayers_to_team();
+            break;
+        case 6:
+            m.LoadPlayers_to_team();
+            break;
+        case 7:
+            m.createTournament();
+            break;
+        case 8:
+            m.Add_match_toTournament();
+            break;
+        case 9:
+            m.Play_Tournament();
+            break;
+        case 10:
+            m.Display_Tournament();
+            break;
+        case 11:
+            m.Display_Ranking();
+            break;
+        case 12:
+        {
+            running = false;
+            cout << "Exiting program. Goodbye!" << endl;
+            break;
+        }
+        default:
+            cout << "Invalid choice! Please enter 1-12." << endl;
+        }
+    }
+    return 0;
+}
